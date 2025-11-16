@@ -1,0 +1,188 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Admin</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="{% url 'index' %}" class="logo">
+                <div class="logo-image-wrapper">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-img">
+                </div>
+                <span class="logo-text">High Flight<br>English School</span>
+            </a>
+            <nav class="nav-menu">
+                <button class="menu-close">&times;</button>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}">Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin' %}" class="active">Administração</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div class="header-right">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline">Sair</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline">Entrar</a>
+                {% endif %}
+                <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-dashboard admin-edit-course">
+        <div class="container">
+            
+            <a href="{% url 'admin_turmas' %}" class="admin-back-link">
+                <i class="fas fa-arrow-left"></i> Voltar para Turmas
+            </a>
+
+            <h1>{{ page_title }}</h1>
+            
+            <div class="admin-unified-box {% if not turma.id %}add-mode{% endif %}">
+
+                <div class="form-section-detalhes">
+                    {% if turma.id %}
+                        <form id="form-detalhes" method="post" action="{% url 'admin_turma_edit' turma.id %}" class="course-form">
+                    {% else %}
+                        <form id="form-detalhes" method="post" action="{% url 'admin_turma_add' %}" class="course-form">
+                    {% endif %}
+                        {% csrf_token %}
+                        <h3>Detalhes da Turma</h3>
+                        <div class="form-grid">
+                            <div class="form-column">
+                                <div class="form-field">
+                                    <label for="{{ form.curso.id_for_label }}">{{ form.curso.label }}*</label>
+                                    {{ form.curso }}
+                                </div>
+                                <div class="form-field">
+                                    <label for="{{ form.nome.id_for_label }}">{{ form.nome.label }}*</label>
+                                    {{ form.nome }}
+                                </div>
+                                <div class="form-field">
+                                    <label for="{{ form.responsavel.id_for_label }}">{{ form.responsavel.label }}</label>
+                                    {{ form.responsavel }}
+                                </div>
+                                <div class="form-field">
+                                    <label for="{{ form.dias.id_for_label }}">{{ form.dias.label }}</label>
+                                    {{ form.dias }}
+                                </div>
+                                <div class="form-field">
+                                    <label for="{{ form.horario.id_for_label }}">{{ form.horario.label }}</label>
+                                    {{ form.horario }}
+                                </div>
+                                <div class="form-field-row">
+                                    <div class="form-field form-field-half">
+                                        <label for="{{ form.data_inicio.id_for_label }}">{{ form.data_inicio.label }}</label>
+                                        {{ form.data_inicio }}
+                                    </div>
+                                    <div class="form-field form-field-half">
+                                        <label for="{{ form.max_alunos.id_for_label }}">{{ form.max_alunos.label }}</label>
+                                        {{ form.max_alunos }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <a href="{% url 'admin_turmas' %}" class="btn btn-outline">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Salvar Detalhes</button>
+                        </div>
+                    </form>
+                </div>
+                {% if turma.id %}
+
+                    <div class="form-section-alunos">
+                        <form action="{% url 'admin_turma_add_aluno' turma.id %}" method="POST">
+                            {% csrf_token %}
+                            <h3>Adicionar Aluno à Turma</h3>
+                            <div class="form-field">
+                                <label for="buscar-aluno">Buscar Aluno (Matrícula Ativa)</label>
+                                <select name="aluno_para_adicionar" id="buscar-aluno">
+                                    <option value="">Selecione um aluno...</option>
+                                    {% for matricula in matriculas_para_adicionar %}
+                                        <option value="{{ matricula.aluno.id }}">{{ matricula.aluno.first_name }} {{ matricula.aluno.last_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full-width" style="margin-bottom: 24px;">
+                                <i class="fas fa-plus"></i> Adicionar Aluno
+                            </button>
+                        </form>
+                        
+                        <h3>Alunos Associados ({{ alunos_na_turma.count }})</h3>
+                        <div class="student-list">
+                            {% for aluno in alunos_na_turma %}
+                            <div class="student-list-item">
+                                <span>{{ aluno.first_name }} {{ aluno.last_name }}</span>
+                                <form action="{% url 'admin_turma_remove_aluno' turma.id aluno.id %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-remove" aria-label="Remover" onclick="return confirm('Remover este aluno da turma?');">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% empty %}
+                            <p>Nenhum aluno associado a esta turma.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-section-comunicado">
+                        <h3>Enviar Comunicado (Aviso)</h3>
+                        <form action="{% url 'admin_enviar_comunicado' turma.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-field">
+                                <label for="comunicado-titulo">Título do Aviso</label>
+                                <input type="text" name="titulo" id="comunicado-titulo" placeholder="Ex: Lembrete da Prova" class="input-field">
+                            </div>
+                            <div class="form-field">
+                                <label for="comunicado-mensagem">Mensagem</label>
+                                <textarea name="mensagem" id="comunicado-mensagem" rows="4" placeholder="Escreva um aviso..." class="input-field"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Enviar Aviso
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="form-section-material">
+                        <h3>Adicionar Material (Anexo)</h3>
+                        <form action="{% url 'admin_adicionar_material' turma.id %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-field">
+                                <label for="material-titulo">Título do Material</label>
+                                <input type="text" name="titulo" id="material-titulo" placeholder="Ex: Slides Aula 5" class="input-field">
+                            </div>
+                            <div class="form-field">
+                                <label for="material-arquivo">Anexar Arquivo</label>
+                                <input type="file" name="arquivo" id="material-arquivo" class="input-field">
+                            </div>
+                            <div class="form-field">
+                                <label for="material-link">Ou Link Externo (Opcional)</label>
+                                <input type="url" name="link" id="material-link" placeholder="https://..." class="input-field">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i> Salvar Material
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+    </main>
+    
+    <footer class="footer">
+        </footer>
+</body>
+</html>

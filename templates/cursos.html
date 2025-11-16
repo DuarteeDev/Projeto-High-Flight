@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursos - High Flight English School</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="{% url 'index' %}" class="logo">
+                <div class="logo-image-wrapper">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-img">
+                </div>
+                <span class="logo-text">High Flight<br>English School</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <button class="menu-close">&times;</button>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}" class="active">Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    
+                    {% if not user.is_authenticated %}
+                        <li><a href="{% url 'matricula' %}">Matrícula</a></li>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated and not user.is_staff %}
+                        <li><a href="{% url 'minha_turma' %}">Minha Turma</a></li>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin' %}">Administração</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <div class="header-right">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline">Sair</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline">Entrar</a>
+                {% endif %}
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="courses-page">
+        <div class="container">
+            <h2 class="text-center">Nossos Cursos</h2>
+            
+            <div class="courses-grid">
+
+                {% for curso in lista_de_cursos %}
+                <div class="course-card">
+                    
+                    <div class="course-card-image-wrapper">
+                        {% if curso.capa_curso %}
+                            <img src="{{ curso.capa_curso.url }}" alt="{{ curso.get_nome_completo }}">
+                        {% else %}
+                            {% endif %}
+                    </div>
+                    
+                    <h3>{{ curso.get_nome_completo }}</h3>
+                    
+                    <p>{{ curso.descricao|default:"Em breve, uma descrição completa deste curso." }}</p>
+                    
+                    <a href="{% url 'matricula' %}" class="btn btn-primary">Matricule-se agora</a>
+                </div>
+                {% empty %}
+                <p style="color: var(--color-light-text); text-align: center; grid-column: 1 / -1;">
+                    Nenhum curso disponível no momento.
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-col">
+                <h4>High Flight English School</h4>
+                <p>Sua jornada para a fluência em inglês começa aqui. Voe alto com nossos cursos especializados e metodologia comprovada.</p>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/p/High-Flight-English-School-Fernando-Prestes-SP-100057629761181" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://api.whatsapp.com/send?phone=5516997489206&text=Olá%21+Tenho+interesse+nos+cursos+da+High+Flight+English+School+e+gostaria+de+mais+informações." target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.instagram.com/highflight.englishschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Links Rápidos</h4>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}">Nossos Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    <li><a href="{% url 'matricula' %}">Matrícula</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Contato</h4>
+                <p>
+                    (11) 3000-0000<br>
+                    (11) 99999-0000<br>
+                    contato@highflight.com<br>
+                    Rua das Palmeiras, 123<br>
+                    São Paulo, SP - 01234-567
+                </p>
+                <p>
+                    <strong>Horário de Funcionamento:</strong><br>
+                    Segunda a Sexta: 8h às 21h<br>
+                    Sábado: 8h às 18h<br>
+                    Domingo: 9h às 17h
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        const navMenu = document.querySelector('.nav-menu');
+        const menuToggle = document.querySelector('.menu-toggle');
+        const menuClose = document.querySelector('.menu-close');
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                navMenu.classList.add('active');
+            });
+        }
+
+        if (menuClose) {
+            menuClose.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>

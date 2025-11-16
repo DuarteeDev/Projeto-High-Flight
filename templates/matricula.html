@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrícula - High Flight English School</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="{% url 'index' %}" class="logo">
+                <div class="logo-image-wrapper">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-img">
+                </div>
+                <span class="logo-text">High Flight<br>English School</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <button class="menu-close">&times;</button>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}">Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    
+                    {% if not user.is_authenticated %}
+                        <li><a href="{% url 'matricula' %}" class="active">Matrícula</a></li>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated and not user.is_staff %}
+                        <li><a href="{% url 'minha_turma' %}">Minha Turma</a></li>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin' %}">Administração</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <div class="header-right">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline">Sair</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline">Entrar</a>
+                {% endif %}
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="enrollment-page-p2">
+        <div class="container">
+            
+            <a href="{% url 'index' %}" class="admin-back-link">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+
+            <div class="enrollment-layout">
+                <div class="enrollment-form-col">
+                    <h2>Formulário de Matrícula</h2>
+                    <p class="form-subtitle">Preencha todas as informações para iniciar sua jornada na High Flight English School</p>
+
+                    <div class="form-box">
+                        <h3>Informações do Curso</h3>
+                        
+                        <form action="{% url 'matricula' %}" method="POST" id="matricula-form">
+                            {% csrf_token %}
+                            
+                            <div class="form-row">
+                                <div class="form-group flex-1">
+                                    <label for="curso">Curso Desejado*</label>
+                                    
+                                    <select id="curso" name="curso" required>
+                                        <option value="" selected>Selecione um Curso</option>
+                                        
+                                        {% for curso in lista_de_cursos %}
+                                        <option value="{{ curso.nome }}">{{ curso.nome }}</option>
+                                        {% endfor %}
+                                        
+                                    </select>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="turno">Horário Preferido (Início)*</label>
+                                    <select id="turno" name="horario_preferido" required> <option value="" selected>Selecione um horário</option>
+                                        <option value="08:00">08:00</option>
+                                        <option value="09:00">09:00</option>
+                                        <option value="10:00">10:00</option>
+                                        <option value="11:00">11:00</option>
+                                        <option value="14:00">14:00</option>
+                                        <option value="15:00">15:00</option>
+                                        <option value="16:00">16:00</option>
+                                        <option value="17:00">17:00</option>
+                                        <option value="19:00">19:00</option>
+                                        <option value="20:00">20:00</option>
+                                        <option value="A combinar (Manhã)">A combinar (Manhã)</option>
+                                        <option value="A combinar (Tarde)">A combinar (Tarde)</option>
+                                        <option value="A combinar (Noite)">A combinar (Noite)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Dias Disponíveis*</label>
+                                
+                                <div class="toggle-buttons-checkbox">
+                                    <input type="checkbox" name="dias" value="Segunda" id="dia-seg">
+                                    <label for="dia-seg">Segunda</label>
+                                    <input type="checkbox" name="dias" value="Terça" id="dia-ter">
+                                    <label for="dia-ter">Terça</label>
+                                    <input type="checkbox" name="dias" value="Quarta" id="dia-qua">
+                                    <label for="dia-qua">Quarta</label>
+                                    <input type="checkbox" name="dias" value="Quinta" id="dia-qui">
+                                    <label for="dia-qui">Quinta</label>
+                                    <input type="checkbox" name="dias" value="Sexta" id="dia-sex">
+                                    <label for="dia-sex">Sexta</label>
+                                    <input type="checkbox" name="dias" value="Sábado" id="dia-sab">
+                                    <label for="dia-sab">Sábado</label>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group flex-1">
+                                    <label for="nivel">Como você considera o seu nível de Inglês?*</label>
+                                    <select id="nivel" name="nivel_ingles" required> <option value="" selected>Selecione uma opção</option>
+                                        <option value="Iniciante">Acabei de Começar</option>
+                                        <option value="Basico">Sei o Básico</option>
+                                        <option value="Intermediario">Consigo Conversar</option>
+                                        <option value="Avancado">Avançado</option>
+                                    </select>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="objetivo">Qual o seu objetivo com o curso?*</label>
+                                    <select id="objetivo" name="objetivo" required>
+                                        <option value="" selected>Selecione uma opção</option>
+                                        <option value="Nenhum">Nenhuma Preferência</option>
+                                        <option value="Negocios">Inglês para Negócios</option>
+                                        <option value="Iniciantes">Inglês para Iniciantes</option>
+                                        <option value="Conversacao">Conversação em Inglês</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-nav-footer">
+                                <button type="submit" class="btn btn-primary btn-rect">Avançar</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            
+            <div class="footer-col">
+                <h4>High Flight English School</h4>
+                <p>Sua jornada para a fluência em inglês começa aqui. Voe alto com nossos cursos especializados e metodologia comprovada.</p>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/p/High-Flight-English-School-Fernando-Prestes-SP-100057629761181" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://api.whatsapp.com/send?phone=5516997489206&text=Olá%21+Tenho+interesse+nos+cursos+da+High+Flight+English+School+e+gostaria+de+mais+informações." target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.instagram.com/highflight.englishschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Links Rápidos</h4>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}">Nossos Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    <li><a href="{% url 'matricula' %}">Matrícula</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Contato</h4>
+                <p>
+                    (11) 3000-0000<br>
+                    (11) 99999-0000<br>
+                    contato@highflight.com<br>
+                    Rua das Palmeiras, 123<br>
+                    São Paulo, SP - 01234-567
+                </p>
+                <p>
+                    <strong>Horário de Funcionamento:</strong><br>
+                    Segunda a Sexta: 8h às 21h<br>
+                    Sábado: 8h às 18h<br>
+                    Domingo: 9h às 17h
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- SCRIPT DO MENU ---
+        const navMenu = document.querySelector('.nav-menu');
+        const menuToggle = document.querySelector('.menu-toggle');
+        const menuClose = document.querySelector('.menu-close');
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                navMenu.classList.add('active');
+            });
+        }
+
+        if (menuClose) {
+            menuClose.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        }
+        
+        const matriculaForm = document.getElementById('matricula-form');
+        
+        matriculaForm.addEventListener('submit', function(event) {
+            const diasSelecionados = document.querySelectorAll('.toggle-buttons-checkbox input[type="checkbox"]:checked').length;
+            
+            if (diasSelecionados === 0) {
+                event.preventDefault(); 
+                alert('Por favor, selecione pelo menos um Dia Disponível.');
+            }
+        });
+    </script>
+</body>
+</html>

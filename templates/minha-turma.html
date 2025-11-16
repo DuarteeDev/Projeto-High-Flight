@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Turma - High Flight English School</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="{% url 'index' %}" class="logo">
+                <div class="logo-image-wrapper">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-img">
+                </div>
+                <span class="logo-text">High Flight<br>English School</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <button class="menu-close">&times;</button>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}">Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    
+                    {% if user.is_authenticated and not user.is_staff %}
+                        <li><a href="{% url 'minha_turma' %}" class="active">Minha Turma</a></li>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                        <li><a href="{% url 'admin' %}">Administração</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <div class="header-right">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline">Sair</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline">Entrar</a>
+                {% endif %}
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="student-dashboard">
+        <div class="container">
+            
+            <div class="dashboard-header">
+                <h1>Painel do Aluno</h1>
+                <p>Bem-vindo(a), {{ user.first_name }}!</p>
+            </div>
+
+            {% if turmas %}
+                {% for turma in turmas %}
+                <div class="turma-card">
+                    <div class="turma-card-header">
+                        <h2>{{ turma.nome }}</h2>
+                        <span class="turma-curso-badge">{{ turma.curso.nome }}</span>
+                    </div>
+                    <div class="turma-card-details">
+                        <p><i class="fas fa-user-tie"></i> <strong>Responsável:</strong> {{ turma.responsavel.get_full_name|default:"A definir" }}</p>
+                        <p><i class="fas fa-calendar-alt"></i> <strong>Dias:</strong> {{ turma.dias|default:"A definir" }}</p>
+                        <p><i class="fas fa-clock"></i> <strong>Horário:</strong> {{ turma.horario|default:"A definir" }}</p>
+                    </div>
+
+                    <div class="turma-section">
+                        <h3><i class="fas fa-bullhorn"></i> Comunicados</h3>
+                        {% for comunicado in turma.comunicados.all %}
+                        <div class="comunicado-item">
+                            <strong>{{ comunicado.titulo }}</strong> ({{ comunicado.data_publicacao|date:"d/m/Y" }})
+                            <p>{{ comunicado.mensagem|linebreaksbr }}</p>
+                        </div>
+                        {% empty %}
+                        <p>Nenhum comunicado para esta turma.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="turma-section">
+                        <h3><i class="fas fa-book-open"></i> Materiais de Aula</h3>
+                        <ul class="material-list">
+                            {% for material in turma.materiais.all %}
+                            <li>
+                                <i class="fas fa-link"></i>
+                                <a href="{% if material.arquivo %}{{ material.arquivo.url }}{% else %}{{ material.link }}{% endif %}" target="_blank">
+                                    {{ material.titulo }}
+                                </a>
+                                {% if material.descricao %}<p>{{ material.descricao }}</p>{% endif %}
+                            </li>
+                            {% empty %}
+                            <li>Nenhum material disponível.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+
+            {% else %}
+                <div class="turma-card empty-state">
+                    <h2>Você ainda não foi associado a uma turma.</h2>
+                    <p>
+                        Nossa equipe está processando sua matrícula. Assim que você for alocado em uma turma,
+                        todas as informações, materiais e comunicados aparecerão aqui.
+                    </p>
+                    <p>Obrigado pela paciência!</p>
+                </div>
+            {% endif %}
+
+        </div>
+    </main>
+    
+    <footer class="footer">
+        <div class="container">
+            
+            <div class="footer-col">
+                <h4>High Flight English School</h4>
+                <p>Sua jornada para a fluência em inglês começa aqui. Voe alto com nossos cursos especializados e metodologia comprovada.</p>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/p/High-Flight-English-School-Fernando-Prestes-SP-100057629761181" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://api.whatsapp.com/send?phone=5516997489206&text=Olá%21+Tenho+interesse+nos+cursos+da+High+Flight+English+School+e+gostaria+de+mais+informações." target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.instagram.com/highflight.englishschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Links Rápidos</h4>
+                <ul>
+                    <li><a href="{% url 'index' %}">Início</a></li>
+                    <li><a href="{% url 'cursos' %}">Nossos Cursos</a></li>
+                    <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+                    <li><a href="{% url 'matricula' %}">Matrícula</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Contato</h4>
+                <p>
+                    (11) 3000-0000<br>
+                    (11) 99999-0000<br>
+                    contato@highflight.com<br>
+                    Rua das Palmeiras, 123<br>
+                    São Paulo, SP - 01234-567
+                </p>
+                <p>
+                    <strong>Horário de Funcionamento:</strong><br>
+                    Segunda a Sexta: 8h às 21h<br>
+                    Sábado: 8h às 18h<br>
+                    Domingo: 9h às 17h
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const navMenu = document.querySelector('.nav-menu');
+        const menuToggle = document.querySelector('.menu-toggle');
+        const menuClose = document.querySelector('.menu-close');
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                navMenu.classList.add('active');
+            });
+        }
+
+        if (menuClose) {
+            menuClose.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>

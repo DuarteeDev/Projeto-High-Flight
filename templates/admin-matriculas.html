@@ -1,0 +1,480 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matrículas - Admin - High Flight English School</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <a href="{% url 'index' %}" class="logo">
+        <div class="logo-image-wrapper">
+          <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo-img" />
+        </div>
+        <span class="logo-text">High Flight<br />English School</span>
+      </a>
+
+      <nav class="nav-menu">
+        <button class="menu-close">&times;</button>
+        <ul>
+          <li><a href="{% url 'index' %}">Início</a></li>
+          <li><a href="{% url 'cursos' %}">Cursos</a></li>
+          <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+
+          {% if not user.is_authenticated %}
+          <li><a href="{% url 'matricula' %}">Matrícula</a></li>
+          {% endif %}
+
+          {% if user.is_authenticated and not user.is_staff %}
+          <li><a href="{% url 'minha_turma' %}">Minha Turma</a></li>
+          {% endif %}
+
+          {% if user.is_staff %}
+          <li><a href="{% url 'admin' %}" class="active">Administração</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+
+      <div class="header-right">
+        {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="btn btn-outline">Sair</a>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn btn-outline">Entrar</a>
+        {% endif %}
+        <button class="menu-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-dashboard">
+    <div class="container">
+      <a href="{% url 'admin' %}" class="admin-back-link">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+
+      <h1>Painel Administrativo</h1>
+      <p class="admin-subtitle">Gerencie e acompanhe o status das matrículas dos alunos</p>
+
+      <div class="admin-tabs">
+        <a href="{% url 'admin' %}" class="tab-item">Visão Geral</a>
+        <a href="{% url 'admin_matriculas' %}" class="tab-item active">Matrículas</a>
+        <a href="{% url 'admin_cursos' %}" class="tab-item">Cursos</a>
+        <a href="{% url 'admin_turmas' %}" class="tab-item">Turmas</a>
+      </div>
+
+      <div class="admin-content-box">
+        <h4>Lista Completa de Matrículas</h4>
+
+        <div class="admin-controls-bar" style="display: flex; gap: 20px; margin-bottom: 20px;">
+
+          <div class="admin-search-bar" style="flex-grow: 1;">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Buscar por nome, e-mail ou curso..." />
+          </div>
+
+          <div class="admin-filter-select" style="width: 250px;">
+            <select id="status-filter">
+              <option value="ATIVOS_PENDENTES" selected>Filtrar: Ativos e Pendentes</option>
+              <option value="TODOS">Mostrar Todos (Incl. Cancelados)</option>
+              <option value="ATIVA">Apenas Ativos</option>
+              <option value="PENDENTE">Apenas Pendentes</option>
+              <option value="CANCELADA">Apenas Cancelados</option>
+            </select>
+          </div>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>E-mail</th>
+              <th>Curso Desejado</th>
+              <th>Data Matrícula</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for aluno in lista_de_matriculas %}
+            <tr>
+              <td>{{ aluno.user.first_name }} {{ aluno.user.last_name }}</td>
+              <td>{{ aluno.user.email }}</td>
+              <td>{{ aluno.curso_desejado }}</td>
+              <td>{{ aluno.user.date_joined|date:"d/m/Y" }}</td>
+              <td>
+                <span class="status-tag status-{{ aluno.status_slug }}">
+                  {{ aluno.status_display }}
+                </span>
+              </td>
+              <td class="action-icons">
+                <a href="#" class="js-view-details"
+                  data-nome="{{ aluno.user.first_name }} {{ aluno.user.last_name }}"
+                  data-email="{{ aluno.user.email }}"
+                  data-telefone="{{ aluno.telefone }}"
+                  data-cpf="{{ aluno.cpf }}"
+                  data-nascimento="{{ aluno.data_nascimento }}"
+                  data-logradouro="{{ aluno.logradouro }}"
+                  data-numero="{{ aluno.numero }}"
+                  data-complemento="{{ aluno.complemento }}"
+                  data-bairro="{{ aluno.bairro }}"
+                  data-cidade="{{ aluno.cidade }}"
+                  data-estado="{{ aluno.estado }}"
+                  data-cep="{{ aluno.cep }}"
+                  data-curso_desejado="{{ aluno.curso_desejado }}"
+                  data-horario_preferido="{{ aluno.horario_preferido }}"
+                  data-dias_disponiveis="{{ aluno.dias_disponiveis }}"
+                  data-nivel_ingles="{{ aluno.nivel_ingles }}"
+                  data-objetivo="{{ aluno.objetivo }}"
+                  data-matricula-status="{{ aluno.status_display }}"
+                  data-matricula-data="{{ aluno.user.date_joined|date:"d/m/Y" }}">
+                  <i class="fas fa-file-alt"></i>
+                </a>
+
+                <a href="{% url 'admin_matricula_edit' aluno.user.id %}" class="js-open-edit"
+                  data-user-id="{{ aluno.user.id }}"
+                  data-first_name="{{ aluno.user.first_name }}"
+                  data-last_name="{{ aluno.user.last_name }}"
+                  data-email="{{ aluno.user.email }}"
+                  data-telefone="{{ aluno.telefone }}"
+                  data-cpf="{{ aluno.cpf }}"
+                  data-nascimento="{{ aluno.data_nascimento }}"
+                  data-cep="{{ aluno.cep }}"
+                  data-logradouro="{{ aluno.logradouro }}"
+                  data-numero="{{ aluno.numero }}"
+                  data-complemento="{{ aluno.complemento }}"
+                  data-bairro="{{ aluno.bairro }}"
+                  data-cidade="{{ aluno.cidade }}"
+                  data-estado="{{ aluno.estado }}"
+                  data-curso_desejado="{{ aluno.curso_desejado }}"
+                  data-horario_preferido="{{ aluno.horario_preferido }}"
+                  data-dias_disponiveis="{{ aluno.dias_disponiveis }}"
+                  data-nivel_ingles="{{ aluno.nivel_ingles }}"
+                  data-objetivo="{{ aluno.objetivo }}"
+                  data-status="{{ aluno.status_slug|upper }}">
+                  <i class="fas fa-pencil-alt"></i>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row">
+              <td colspan="6" class="text-center" style="padding: 40px; font-style: italic; color: var(--color-gray-outline);">Nenhuma pré-matrícula encontrada.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="detalhesOverlay" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Detalhes do Aluno</h3>
+        <button class="modal-close-btn" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="details-grid">
+          <h5>Informações Pessoais</h5>
+          <div class="field"><label>Nome Completo</label><div id="det_nome_completo">—</div></div>
+          <div class="field"><label>E-mail</label><div id="det_email">—</div></div>
+          <div class="field"><label>Telefone</label><div id="det_telefone">—</div></div>
+          <div class="field"><label>CPF</label><div id="det_cpf">—</div></div>
+          <div class="field"><label>Data de Nascimento</label><div id="det_nascimento">—</div></div>
+          <h5>Endereço</h5>
+          <div class="field"><label>CEP</label><div id="det_cep">—</div></div>
+          <div class="field"><label>Logradouro</label><div id="det_logradouro">—</div></div>
+          <div class="field"><label>Número</label><div id="det_numero">—</div></div>
+          <div class="field"><label>Complemento</label><div id="det_complemento">—</div></div>
+          <div class="field"><label>Bairro</label><div id="det_bairro">—</div></div>
+          <div class="field"><label>Cidade</label><div id="det_cidade">—</div></div>
+          <div class="field"><label>Estado</label><div id="det_estado">—</div></div>
+          <h5>Curso</h5>
+          <div class="field"><label>Curso Desejado</label><div id="det_curso_desejado">—</div></div>
+          <div class="field"><label>Horário Preferido</label><div id="det_horario_preferido">—</div></div>
+          <div class="field"><label>Dias Disponíveis</label><div id="det_dias_disponiveis">—</div></div>
+          <div class="field"><label>Nível de Inglês</label><div id="det_nivel_ingles">—</div></div>
+          <div class="field"><label>Objetivo</label><div id="det_objetivo">—</div></div>
+          <h5>Matrícula</h5>
+          <div class="field"><label>Status</label><div id="det_matricula_status">—</div></div>
+          <div class="field"><label>Data</label><div id="det_matricula_data">—</div></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="modalCloseBtn2">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="editarOverlay" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Editar Matrícula</h3>
+        <button class="modal-close-btn" id="editarCloseBtn">&times;</button>
+      </div>
+
+      <form id="editarForm" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="details-grid">
+
+            <h5>Informações Pessoais</h5>
+            <div class="field">
+              <label>Nome</label>
+              <input id="ed_first_name" name="first_name" class="input-field" />
+            </div>
+
+            <div class="field">
+              <label>Sobrenome</label>
+              <input id="ed_last_name" name="last_name" class="input-field" />
+            </div>
+
+            <div class="field">
+              <label>E-mail</label>
+              <input id="ed_email" name="email" type="email" class="input-field" />
+            </div>
+
+            <div class="field">
+              <label>Telefone</label>
+              <input id="ed_telefone" name="telefone" class="input-field" />
+            </div>
+
+            <div class="field">
+              <label>CPF</label>
+              <input id="ed_cpf" name="cpf" class="input-field" />
+            </div>
+
+            <div class="field">
+              <label>Data de Nascimento</label>
+              <input id="ed_nascimento" name="data_nascimento" class="input-field" />
+            </div>
+
+            <h5>Endereço</h5>
+            <div class="field"><label>CEP</label><input id="ed_cep" name="cep" class="input-field" /></div>
+            <div class="field"><label>Logradouro</label><input id="ed_logradouro" name="logradouro" class="input-field" /></div>
+            <div class="field"><label>Número</label><input id="ed_numero" name="numero" class="input-field" /></div>
+            <div class="field"><label>Complemento</label><input id="ed_complemento" name="complemento" class="input-field" /></div>
+            <div class="field"><label>Bairro</label><input id="ed_bairro" name="bairro" class="input-field" /></div>
+            <div class="field"><label>Cidade</label><input id="ed_cidade" name="cidade" class="input-field" /></div>
+            <div class="field"><label>Estado</label><input id="ed_estado" name="estado" class="input-field" /></div>
+
+            <h5>Curso</h5>
+            <div class="field"><label>Curso Desejado</label><input id="ed_curso_desejado" name="curso_desejado" class="input-field" /></div>
+            <div class="field"><label>Horário Preferido</label><input id="ed_horario_preferido" name="horario_preferido" class="input-field" /></div>
+            <div class="field"><label>Dias Disponíveis</label><input id="ed_dias_disponiveis" name="dias_disponiveis" class="input-field" /></div>
+            <div class="field"><label>Nível de Inglês</label><input id="ed_nivel_ingles" name="nivel_ingles" class="input-field" /></div>
+            <div class="field"><label>Objetivo</label><input id="ed_objetivo" name="objetivo" class="input-field" /></div>
+
+            <div class="field">
+              <label>Status</label>
+              <select id="ed_status" name="status" class="input-field">
+                <option value="ATIVA">Ativa</option>
+                <option value="PENDENTE">Pendente</option>
+                <option value="CANCELADA">Cancelada</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-outline" id="editarCloseBtn2">Fechar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <footer class="footer">
+    <div class="container">
+
+      <div class="footer-col">
+        <h4>High Flight English School</h4>
+        <p>Sua jornada para a fluência em inglês começa aqui. Voe alto com nossos cursos especializados e metodologia comprovada.</p>
+        <div class="social-icons">
+          <a href="https://www.facebook.com/p/High-Flight-English-School-Fernando-Prestes-SP-100057629761181" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <i class="fab fa-facebook"></i>
+          </a>
+          <a href="https://api.whatsapp.com/send?phone=5516997489206&text=Olá%21+Tenho+interesse+nos+cursos+da+High-Flight+English+School+e+gostaria+de+mais+informações." target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="https://www.instagram.com/highflight.englishschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <i class="fab fa-instagram"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Links Rápidos</h4>
+        <ul>
+          <li><a href="{% url 'index' %}">Início</a></li>
+          <li><a href="{% url 'cursos' %}">Nossos Cursos</a></li>
+          <li><a href="{% url 'sobrenos' %}">Sobre Nós</a></li>
+          <li><a href="{% url 'matricula' %}">Matrícula</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <p>
+          (11) 3000-0000<br>
+          (11) 99999-0000<br>
+          contato@highflight.com<br>
+          Rua das Palmeiras, 123<br>
+          São Paulo, SP - 01234-567
+        </p>
+        <p>
+          <strong>Horário de Funcionamento:</strong><br>
+          Segunda a Sexta: 8h às 21h<br>
+          Sábado: 8h às 18h<br>
+          Domingo: 9h às 17h
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // --- LÓGICA DO MENU ---
+    const navMenu = document.querySelector('.nav-menu');
+    const menuToggle = document.querySelector('.menu-toggle');
+    const menuClose = document.querySelector('.menu-close');
+    if (menuToggle) { menuToggle.addEventListener('click', () => { navMenu.classList.add('active'); }); }
+    if (menuClose) { menuClose.addEventListener('click', () => { navMenu.classList.remove('active'); }); }
+
+    // --- LÓGICA DE FILTRO (ATUALIZADA) ---
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+    const tableBody = document.querySelector('.admin-table tbody');
+    const allRows = tableBody ? Array.from(tableBody.querySelectorAll('tr')) : [];
+
+    function applyFilters() {
+      if (!tableBody) return;
+
+      const searchText = searchInput.value.toLowerCase();
+      const selectedStatus = statusFilter.value; // Ex: "ATIVOS_PENDENTES"
+
+      allRows.forEach(row => {
+        if (row.classList.contains('empty-row')) {
+          row.style.display = 'none';
+          return;
+        }
+
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 5) return;
+
+        const alunoNome = (cells[0].textContent || '').toLowerCase();
+        const alunoEmail = (cells[1].textContent || '').toLowerCase();
+        const alunoCurso = (cells[2].textContent || '').toLowerCase();
+
+        const alunoStatusTag = cells[4].querySelector('.status-tag');
+        const alunoStatus = alunoStatusTag ? alunoStatusTag.textContent.trim().toUpperCase() : '';
+
+        let statusMatch = false;
+        if (selectedStatus === 'TODOS') {
+          statusMatch = true;
+        } else if (selectedStatus === 'ATIVOS_PENDENTES') {
+          statusMatch = (alunoStatus !== 'CANCELADA');
+        } else {
+          statusMatch = (alunoStatus === selectedStatus);
+        }
+        const textMatch = (
+          alunoNome.includes(searchText) ||
+          alunoEmail.includes(searchText) ||
+          alunoCurso.includes(searchText)
+        );
+        row.style.display = (statusMatch && textMatch) ? '' : 'none';
+      });
+
+      checkEmptyState();
+    }
+    function checkEmptyState() {
+      const visibleRows = allRows.filter(row => row.style.display !== 'none' && !row.classList.contains('empty-row'));
+      const emptyRow = tableBody.querySelector('.empty-row');
+
+      if (emptyRow) {
+        emptyRow.style.display = visibleRows.length === 0 ? '' : 'none';
+      }
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+
+    applyFilters();
+
+    const overlay = document.getElementById('detalhesOverlay');
+    const editarOverlay = document.getElementById('editarOverlay');
+    const editarForm = document.getElementById('editarForm');
+
+    document.querySelectorAll('.js-view-details').forEach(a => {
+      a.addEventListener('click', ev => {
+        ev.preventDefault();
+        const d = ev.currentTarget.dataset;
+        const set = (id, v) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = v || '—';
+        };
+
+        set('det_nome_completo', d.nome);
+        set('det_email', d.email);
+        set('det_telefone', d.telefone);
+        set('det_cpf', d.cpf);
+        set('det_nascimento', d.nascimento);
+        set('det_logradouro', d.logradouro);
+        set('det_numero', d.numero);
+        set('det_bairro', d.bairro);
+        set('det_cidade', d.cidade);
+        set('det_estado', d.estado);
+        set('det_cep', d.cep);
+        set('det_curso_desejado', d.curso_desejado);
+        set('det_matricula_status', d.matriculaStatus);
+        set('det_matricula_data', d.matriculaData);
+        set('det_complemento', d.complemento);
+        set('det_horario_preferido', d.horario_preferido);
+        set('det_dias_disponiveis', d.dias_disponiveis);
+        set('det_nivel_ingles', d.nivel_ingles);
+        set('det_objetivo', d.objetivo);
+
+        overlay.style.display = 'flex';
+      });
+    });
+    document.getElementById('modalCloseBtn').onclick = () => overlay.style.display = 'none';
+    document.getElementById('modalCloseBtn2').onclick = () => overlay.style.display = 'none';
+
+    document.querySelectorAll('.js-open-edit').forEach(a => {
+      a.addEventListener('click', ev => {
+        ev.preventDefault();
+        const d = ev.currentTarget.dataset;
+
+        document.getElementById('ed_first_name').value = d.first_name || '';
+        document.getElementById('ed_last_name').value = d.last_name || '';
+        document.getElementById('ed_email').value = d.email || '';
+        document.getElementById('ed_telefone').value = d.telefone || '';
+        document.getElementById('ed_cpf').value = d.cpf || '';
+        document.getElementById('ed_nascimento').value = d.nascimento || '';
+        document.getElementById('ed_cep').value = d.cep || '';
+        document.getElementById('ed_logradouro').value = d.logradouro || '';
+        document.getElementById('ed_numero').value = d.numero || '';
+        document.getElementById('ed_complemento').value = d.complemento || '';
+        document.getElementById('ed_bairro').value = d.bairro || '';
+        document.getElementById('ed_cidade').value = d.cidade || '';
+        document.getElementById('ed_estado').value = d.estado || '';
+        document.getElementById('ed_curso_desejado').value = d.curso_desejado || '';
+        document.getElementById('ed_horario_preferido').value = d.horario_preferido || '';
+        document.getElementById('ed_dias_disponiveis').value = d.dias_disponiveis || '';
+        document.getElementById('ed_nivel_ingles').value = d.nivel_ingles || '';
+        document.getElementById('ed_objetivo').value = d.objetivo || '';
+        document.getElementById('ed_status').value = (d.status || 'PENDENTE').toUpperCase();
+
+        editarForm.action = ev.currentTarget.getAttribute('href');
+        editarOverlay.style.display = 'flex';
+      });
+    });
+
+    document.getElementById('editarCloseBtn').onclick = () => editarOverlay.style.display = 'none';
+    document.getElementById('editarCloseBtn2').onclick = () => editarOverlay.style.display = 'none';
+    editarOverlay.addEventListener('click', e => { if (e.target === editarOverlay) editarOverlay.style.display = 'none'; });
+  </script>
+</body>
+</html>
